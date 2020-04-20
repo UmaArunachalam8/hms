@@ -1,0 +1,5 @@
+node1: "node1"
+node2: "node2"
+topic1: "dummy"
+num_topics: 1
+num_nodes: 2

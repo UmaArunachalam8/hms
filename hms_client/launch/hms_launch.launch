@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<launch>
+  <rosparam command="load" file="$(find hms_client)/config/settings.yaml" />
+  <node name="node1" pkg="node1" type="node1" output = "screen">
+  </node>
+  <node name="node2" pkg="node2" type="node2" output = "screen">
+  </node>
+  <node name="hms_client" pkg="hms_client" type="hms_client" output = "screen">
+  </node>
+</launch>
