@@ -12,7 +12,7 @@ bool check(hms_client::ping_pong::Request  &req,
 {
   res.msg.header.stamp = ros::Time::now();
   res.health = 1;
-  res.error_code = 0;
+  res.error_code = 1;
   //ROS_INFO("%s", "hello from node 1");
   //sleep(1);
   return true;
@@ -25,17 +25,17 @@ int main(int argc, char **argv)
   sensor_msgs::PointCloud2 msg; 
   msg.height = 5; 
   msg.is_dense = false;
-  ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2>("dummy", 1000);
+  ros::Publisher pub = n.advertise<sensor_msgs::PointCloud2>("pcd", 1000);
   ros::ServiceServer service = n.advertiseService("health_check_node1", check);
 
-  ros::Rate loop_rate(20);
+  ros::Rate loop_rate(40);
   //ros::MultiThreadedSpinner spinner(2);
 
   while(ros::ok()) {
-    ros::spinOnce();
     //spinner.spin();
     pub.publish(msg);
     //sleep(10);
+    ros::spinOnce();
     loop_rate.sleep();
   }
 

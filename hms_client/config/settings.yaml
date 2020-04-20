@@ -1,5 +1,9 @@
-node1: "node1"
+node1: "goal_publisher"
 node2: "node2"
-topic1: "dummy"
-num_topics: 1
-num_nodes: 2
+topic1: "velodyne_points"
+rate1: 0.5
+topic2: "pod_predicted_laser"
+rate2: 40.0
+num_topics: 2
+num_nodes: 1
+min_rate: 0.5
