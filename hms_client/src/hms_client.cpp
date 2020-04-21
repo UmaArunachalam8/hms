@@ -19,9 +19,9 @@ int scan_steps = 560;
 void PointCloud2_callback(const sensor_msgs::PointCloud2& msg)//1
 {
    if(!msg.is_dense)
-    ROS_INFO("I heard valid pcd data");
+    ROS_INFO("Recieved valid pcd data");
    else
-    ROS_ERROR("I heard invalid pcd data");
+    ROS_ERROR("Received invalid pcd data");
    counter++;
    flags[0] = 1;
    //sleep(10);
@@ -39,9 +39,9 @@ void LaserScan_callback(const sensor_msgs::LaserScan& msg)//2
     //if(msg.ranges[h] > max_ || msg.ranges[h] < min_ || msg.ranges[h] == INT_MAX)
       //if(msg.ranges[h] <= 0)
    if(!flag)
-    ROS_ERROR("I heard invalid laser scan data");
+    ROS_ERROR("Received invalid laser scan data");
    else 
-    ROS_INFO("I heard valid laser scan data");
+    ROS_INFO("Received valid laser scan data");
    counter++;
    flags[1] = 1;
    //sleep(10);
@@ -57,7 +57,7 @@ void ndt_pose_callback(const geometry_msgs::PoseStamped& msg)//3
     ndt_flag = 1;
    }
    else
-    ROS_INFO("I heard valid ndt pose data");
+    ROS_INFO("Received valid ndt pose data");
    counter++;
    prevx = msg.pose.position.x;
    prevy = msg.pose.position.y;
@@ -133,8 +133,8 @@ int main(int argc, char **argv)
     cout << endl;
     counter = 0;
     string nodem = "obstacle_2d";
-    for(auto f: flags)
-      f = 0;
+    for(int i = 0; i < num_topics; i++)
+      flags[i] = 0;
     ros::spinOnce();
 
     if((ndt_flag == 1) && (loop_count != 0))
