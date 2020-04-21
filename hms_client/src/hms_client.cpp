@@ -15,9 +15,10 @@ int counter = 0;
 vector<int> flags;
 float prevx = 0.0, prevy = 0.0;
 int ndt_flag = 0;
+int scan_steps = 560;
 void PointCloud2_callback(const sensor_msgs::PointCloud2& msg)//1
 {
-   if(msg.is_dense)
+   if(!msg.is_dense)
     ROS_INFO("I heard valid pcd data");
    else
     ROS_ERROR("I heard invalid pcd data");
@@ -30,9 +31,13 @@ void LaserScan_callback(const sensor_msgs::LaserScan& msg)//2
    int min_ = msg.range_min - 0.1;
    int max_ = msg.range_max + 0.1;
    int flag = 1;
-   for(int h = 0; 560; h++)
-    if(msg.ranges[h] > max_ || msg.ranges[h] < min_)
-      flag = 0;
+   for(int h = 0; h < scan_steps; h++)
+    if(!isinf(msg.ranges[h]))
+      if(msg.ranges[h] < 0)
+        flag = 0;
+        
+    //if(msg.ranges[h] > max_ || msg.ranges[h] < min_ || msg.ranges[h] == INT_MAX)
+      //if(msg.ranges[h] <= 0)
    if(!flag)
     ROS_ERROR("I heard invalid laser scan data");
    else 
