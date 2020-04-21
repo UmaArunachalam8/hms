@@ -1,9 +1,10 @@
-node1: "goal_publisher"
-node2: "node2"
+node1: "obstacle_2d"
 topic1: "velodyne_points"
-rate1: 0.5
-topic2: "pod_predicted_laser"
+rate1: 1.0
+topic2: "scan"
 rate2: 40.0
-num_topics: 2
+topic3: "ndt_pose"
+rate3: 1.0
+num_topics: 3
 num_nodes: 1
 min_rate: 0.5
