@@ -22,7 +22,7 @@ void PointCloud2_callback(const sensor_msgs::PointCloud2& msg)//1
    else
     ROS_ERROR("I heard invalid pcd data");
    counter++;
-   flag[0] = 1;
+   flags[0] = 1;
    //sleep(10);
 }
 void LaserScan_callback(const sensor_msgs::LaserScan& msg)//2
@@ -38,7 +38,7 @@ void LaserScan_callback(const sensor_msgs::LaserScan& msg)//2
    else 
     ROS_INFO("I heard valid laser scan data");
    counter++;
-   flag[1] = 1;
+   flags[1] = 1;
    //sleep(10);
 }
 void ndt_pose_callback(const geometry_msgs::PoseStamped& msg)//3
@@ -56,7 +56,7 @@ void ndt_pose_callback(const geometry_msgs::PoseStamped& msg)//3
    counter++;
    prevx = msg.pose.position.x;
    prevy = msg.pose.position.y;
-   flag[2] = 1;
+   flags[2] = 1;
 
    //sleep(10);
 }
@@ -121,15 +121,43 @@ int main(int argc, char **argv)
   ros::param::get("min_rate", lr);
   lr = min(lr, float(1));
   cout << lr;
-  ros::Rate loop_rate(lr);
+  ros::Rate loop_rate(1);
   //ros::MultiThreadedSpinner spinner(2);
 
   while(ros::ok()) {
+    cout << endl;
     counter = 0;
     string nodem = "obstacle_2d";
     for(auto f: flags)
       f = 0;
     ros::spinOnce();
+
+    if((ndt_flag == 1) && (loop_count != 0))
+    {
+      geometry_msgs::Twist msg;
+      msg.linear.x = 0;
+      vel_pub.publish(msg);
+    }
+    //spinner.spin();
+    //cout << counter;
+    float check = 0;
+    for(auto r: rates)
+      if(r > lr)
+        check += (r / lr);
+      else
+        check += 1;
+    
+    //cout << counter << endl;
+    if(cb_queue == 1)
+      check = num_topics;
+    if(counter == check)
+      ROS_INFO("Persistence check passed, some data is received from all the three topics: laser, velodyne and ndt_pose");
+    else
+      for(int m = 0; m < num_topics; m++)
+        if(!flags[m])
+          ROS_ERROR("!!!Failed to recieve data from topic %s !!!", topics[m].c_str());
+        else
+          ROS_INFO("Persistence check passed by %s topic", topics[m].c_str());
 
     for(int j = 0; j < num_nodes; j++)
     {
@@ -163,33 +191,6 @@ int main(int argc, char **argv)
         }
       }
     }
-
-    if((ndt_flag == 1) && (loop_count != 0))
-    {
-      geometry_msgs::Twist msg;
-      msg.linear.x = 0;
-      vel_pub.publish(msg);
-    }
-    //spinner.spin();
-    //cout << counter;
-    float check = 0;
-    for(auto r: rates)
-      if(r > lr)
-        check += (r / lr);
-      else
-        check += 1;
-    
-    //cout << counter << endl;
-    if(cb_queue == 1)
-      check = num_topics;
-    if(counter == check)
-      ROS_INFO("Persistence check passed, some data is received from all the three topics: laser, velodyne and ndt_pose");
-    else
-      for(int m = 0; m < num_topics; m++)
-        if(!flag[m])
-          ROS_ERROR("!!!Failed to recieve data from topic %s !!!", topics[m].c_str());
-        else
-          ROS_INFO("Persistence check passed by %s topic", topics[m].c_str());
     loop_count += 1;
     loop_rate.sleep();
 
