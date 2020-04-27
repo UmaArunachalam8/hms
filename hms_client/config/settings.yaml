@@ -1,4 +1,5 @@
 node1: "obstacle_2d"
+node2: "goal_publisher"
 topic1: "velodyne_points"
 rate1: 1.0
 topic2: "scan"
@@ -6,5 +7,5 @@ rate2: 40.0
 topic3: "ndt_pose"
 rate3: 1.0
 num_topics: 3
-num_nodes: 1
+num_nodes: 2
 min_rate: 0.5

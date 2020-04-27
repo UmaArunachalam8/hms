@@ -21,12 +21,13 @@ void PointCloud2_callback(const sensor_msgs::PointCloud2& msg)//1
    if(!msg.is_dense)
     ROS_INFO("Recieved valid pcd data");
    else
-    ROS_ERROR("Received invalid pcd data");
+    ROS_WARN("Received invalid pcd data");
    counter++;
    flags[0] = 1;
    //sleep(10);
 }
-void LaserScan_callback(const sensor_msgs::LaserScan& msg)//2
+//2
+void LaserScan_callback(const sensor_msgs::LaserScan& msg)
 {
    int min_ = msg.range_min - 0.1;
    int max_ = msg.range_max + 0.1;
@@ -48,19 +49,23 @@ void LaserScan_callback(const sensor_msgs::LaserScan& msg)//2
 }
 void ndt_pose_callback(const geometry_msgs::PoseStamped& msg)//3
 {
-   float xdiff = prevx - msg.pose.position.x;
-   float ydiff = prevy - msg.pose.position.y;
-   float dist_sq = xdiff * xdiff + ydiff * ydiff;
-   if(dist_sq > 100)
+   float xdiff = float(prevx - msg.pose.position.x);
+   float ydiff = float(prevy - msg.pose.position.y);
+   float dist_sq = (xdiff * xdiff) + (ydiff * ydiff);
+  
+   if(int(dist_sq) > 100)
    {
-    ROS_ERROR("!!!Bot instructed to come to halt, since sanity check failed!!!");
+    ROS_WARN("New %f , %f Old %f , %f", msg.pose.position.x,msg.pose.position.y,prevx,prevy);
+    ROS_ERROR("[NDT]Bot instructed to come to halt, since sanity check failed");
     ndt_flag = 1;
    }
    else
+   {
     ROS_INFO("Received valid ndt pose data");
+   }
    counter++;
-   prevx = msg.pose.position.x;
-   prevy = msg.pose.position.y;
+   prevx = msg.pose.position.x + 0;
+   prevy = msg.pose.position.y + 0;
    flags[2] = 1;
 
    //sleep(10);
@@ -156,13 +161,19 @@ int main(int argc, char **argv)
     if(cb_queue == 1)
       check = num_topics;
     if(counter == check)
-      ROS_INFO("Persistence check passed, some data is received from all the three topics: laser, velodyne and ndt_pose");
+      ROS_INFO("Persistence check passed [laser, velodyne and ndt_pose]");
     else
+    {
       for(int m = 0; m < num_topics; m++)
+      {
         if(!flags[m])
-          ROS_ERROR("!!!Failed to recieve data from topic %s !!!", topics[m].c_str());
-        else
-          ROS_INFO("Persistence check passed by %s topic", topics[m].c_str());
+        {
+          ROS_ERROR("Failed to recieve data from topic %s ", topics[m].c_str());
+        }
+
+      }
+      ROS_INFO("Persistence check [PointCloud %d, Lidar %d, NDT: %d]", flags[0],flags[1],flags[2]);
+    }
 
     for(int j = 0; j < num_nodes; j++)
     {
@@ -173,26 +184,34 @@ int main(int argc, char **argv)
         val = clients[j].call(srv);
       if(val)
       {
-        if(srv.response.error_code)//obstacle detected..
+        if(nodes[j].c_str() == nodem)
         {
-          ROS_ERROR("Error Code 1 received (obstacle detected), Node %s instructed to come to halt", nodes[j].c_str());
-          geometry_msgs::Twist _msg;
-          _msg.linear.x = 0;
-          vel_pub.publish(_msg);
+          if(srv.response.error_code)//obstacle detected..
+          {
+            ROS_ERROR("Error : [Obstacle detected], [Node %s] Vehicle instructed to come to halt", nodes[j].c_str());
+            geometry_msgs::Twist _msg;
+            _msg.linear.x = 0;
+            vel_pub.publish(_msg);
+          }
+          else
+          {
+            ROS_INFO("Node %s is functioning properly", nodes[j].c_str());
+          }
+          
         }
         else
           ROS_INFO("Node %s is functioning properly", nodes[j].c_str());
       }
       else
       {
-        ROS_ERROR("!!!Failed to call service, node %s malfunctioning!!!", srv.request.node_name.c_str());
+        ROS_ERROR("Failed to call service, node %s malfunctioning", srv.request.node_name.c_str());
         //ROS_ERROR("!!!Failed to call service, node malfunctioning!!!");
         if(nodes[j].c_str() == nodem)
         {
           geometry_msgs::Twist twist_msg;
           twist_msg.linear.x = 0;
           vel_pub.publish(twist_msg);
-          ROS_ERROR("Node %s instructed to come to halt", nodes[j].c_str());
+          ROS_ERROR("[Node %s] Vehicle instructed to come to halt", nodes[j].c_str());
         }
       }
     }
